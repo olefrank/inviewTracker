@@ -1,5 +1,5 @@
 # InViewJS
-InViewJS is a small JavaScript plugin useful for tracking how much time users spend viewing certain contents on your web pages.
+InViewJS is a lightweight JavaScript plugin useful for tracking how much time users spend viewing certain content on your web pages. News papers or blogs can use it to track how much time each user spends on reading articles on their website. Make sure all articles are within a container element (e.g. "#article"), include the plugin on your pages and start tracking!
 
 **[Available at my github page](https://github.com/olefrank/inviewjs/)**
 
