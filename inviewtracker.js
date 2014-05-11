@@ -1,7 +1,7 @@
 ; // defensive programming: script may be concatenated with others
 
 /*
- * InViewJS | v0.1
+ * InViewTracker | v0.1
  * Copyright (c) 2014 Ole Frank Jensen
  * Licensed under the MIT license
  */
