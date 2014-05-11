@@ -3,6 +3,9 @@ _InViewJS_ is a lightweight JavaScript plugin useful for tracking how much time 
 
 **[Available at my github page](https://github.com/olefrank/inviewtracker/)**
 
+## Features
+_Coming soon!_
+
 ## Options
 * **element** which element to track (default: ".article")
 * **pctInView** percentage that the element must fill the screen to be "in view" (default: 50)
