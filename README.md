@@ -4,11 +4,11 @@ InViewJS is a small JavaScript plugin useful for tracking how much time users sp
 **[Available at my github page](https://github.com/olefrank/inviewjs/)**
 
 ## Options
-* '''element''' which element to track (default: ".article")
-* '''pctInView''' how much screen real estate element much fill before tracking (default: 50%)
-* '''eventHandler''' name of external function to handle event broadcasting
-* '''heartbeatInterval''' interval (milliseconds) between heart beats (default: 2000 = 2 sec)
-* '''heartbeatExpires''' how long (milliseconds) before heartbeat stops (default: 180000 = 3 min)
+* **element** which element to track (default: ".article")
+* **pctInView** how much screen real estate element much fill before tracking (default: 50%)
+* **eventHandler** name of external function to handle event broadcasting
+* **heartbeatInterval** interval (milliseconds) between heart beats (default: 2000 = 2 sec)
+* **heartbeatExpires** how long (milliseconds) before heartbeat stops (default: 180000 = 3 min)
 
 ## Demos
 In the '''demo''' folder you can find various HTML pages to demo the plugin. Open the browsers console to view events.
