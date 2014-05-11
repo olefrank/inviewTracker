@@ -1,15 +1,12 @@
 ; // defensive programming: script may be concatenated with others
 
 /*
- * HeartBeat | v0.5
+ * InViewJS | v0.1
  * Copyright (c) 2014 Ole Frank Jensen
  * Licensed under the MIT license
- *
- * CHANGES:
- * - independent from jQuery
  */
 
-var AttentionTracker = (function() {
+var InViewTracker = (function() {
 
     "use strict";
 
@@ -31,7 +28,7 @@ var AttentionTracker = (function() {
      */
     var settings = {
         element: document.querySelector(".article"),
-        pctInView: 90,
+        pctInView: 50,
         eventHandler: broadcastEvent,
         heartbeatInterval: 2000,
         heartbeatExpires: 180000 // 3 min
