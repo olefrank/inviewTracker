@@ -14,7 +14,7 @@ var InViewTracker = (function() {
     var totalTime = 0;
     var heartbeatDelay;
     var heartbeatCounter = 0;
-    var isHeartbeatStarted;
+    var isHeartbeatRunning;
     var heartbeatDate;
     var viewportTop;
     var viewportBottom;
@@ -39,17 +39,19 @@ var InViewTracker = (function() {
      */
     function bindDOMEvents() {
 
+        // when user scrolls: start heart beat if element is "in view"
+        // delay (150 ms) to avoid unnecessary event
         window.onscroll = function() {
             clearTimeout(scrollDelay);
             scrollDelay = setTimeout(function() {
 
                 if ( isInViewport() ) {
-                    if (!isHeartbeatStarted) {
+                    if (!isHeartbeatRunning) {
                         heartbeatStart();
                     }
                 }
                 else {
-                     if (isHeartbeatStarted) {
+                     if (isHeartbeatRunning) {
                         heartbeatStop();
                         totalTime += calculateTimeSpent();
                     }
@@ -57,6 +59,8 @@ var InViewTracker = (function() {
             }, 150);
         };
 
+        // after page loads: calculate view port size
+        // start heartbeat if element is "in view"
         window.onload = function() {
             calculateViewportBoundaries();
 
@@ -65,37 +69,48 @@ var InViewTracker = (function() {
             }
         };
 
+        // before page unloads: send event with total time
         window.onbeforeunload = function() {
             settings.eventHandler("totaltime: " + totalTime);
         };
 
+        // when window loses focus: stop heartbeat
         window.onblur = function() {
-            if (isHeartbeatStarted) {
+            if (isHeartbeatRunning) {
                 heartbeatStop();
                 totalTime += calculateTimeSpent();
             }
         };
 
+        // when window gains focus: start heartbeat if element is "in view"
         window.onfocus = function() {
             calculateViewportBoundaries();
 
             if ( isInViewport() ) {
-                if (!isHeartbeatStarted) {
+                if (!isHeartbeatRunning) {
                     heartbeatStart();
                 }
             }
         };
+
     }
 
+    /**
+     * Calculate viewport top / bottom
+     * Stores results in global vars: viewportTop / viewportBottom
+     */
     function calculateViewportBoundaries() {
         var pctInView = settings.pctInView / 100;
         viewportTop = ( window.innerHeight * (1 - pctInView) );
         viewportBottom = ( window.innerHeight * pctInView );
     }
 
+    /**
+     * Start heartbeat
+     */
     function heartbeatStart() {
         heartbeatDate = new Date();
-        isHeartbeatStarted = true;
+        isHeartbeatRunning = true;
 
         // first heartbeat (fake)
         if (heartbeatCounter === 0) {
@@ -121,11 +136,18 @@ var InViewTracker = (function() {
         }
     }
 
+    /**
+     * Stop heartbeat
+     */
     function heartbeatStop() {
-        isHeartbeatStarted = false;
+        isHeartbeatRunning = false;
         clearInterval(heartbeatDelay);
     }
 
+    /**
+     * Calcule time spent "in view" since last heartbeat
+     * @returns time spent
+     */
     function calculateTimeSpent() {
         var result = 0
 
@@ -144,32 +166,32 @@ var InViewTracker = (function() {
      *          true: if 2) and element fills percentage of view port
      */
     function isInViewport() {
-        var rect = settings.element.getBoundingClientRect();
+        var element = (settings.element).getBoundingClientRect();
 
-        if ( rect.height < window.innerHeight )
-            return isFullyVisible(rect);
+        if ( element.height < window.innerHeight )
+            return isFullyVisible(element);
         else
-            return isPartiallyVisible(rect);
+            return isPartiallyVisible(element);
     }
 
     /**
      * Determines if element fills percentage of view port
-     * @param rect: element
+     * @param element: element
      * @param html: client / view port
      * @returns boolean
      */
-    function isPartiallyVisible(rect) {
-        return (rect.top <= viewportTop) && (rect.bottom >= viewportBottom);
+    function isPartiallyVisible(element) {
+        return (element.top <= viewportTop) && (element.bottom >= viewportBottom);
     }
 
     /**
      * Determines if element is fully visible
-     * @param rect: element
+     * @param element: element
      * @param html: client / view port
      * @returns boolean
      */
-    function isFullyVisible(rect, html) {
-        return (rect.top >= 0) && ( rect.bottom <= (window.innerHeight || html.clientHeight) );
+    function isFullyVisible(element) {
+        return (element.top >= 0) && ( element.bottom <= (window.innerHeight || html.clientHeight) );
     }
 
     /**
@@ -200,6 +222,7 @@ var InViewTracker = (function() {
         bindDOMEvents();
     };
 
+    // define plugin interface
     return {
         init: init
     };
