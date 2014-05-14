@@ -10,7 +10,7 @@ var InViewTracker = (function() {
 
     "use strict";
 
-    var scrollDelay;
+    var listenDelay;
     var totalTime = 0;
     var heartbeatDelay;
     var heartbeatCounter = 0;
@@ -40,8 +40,8 @@ var InViewTracker = (function() {
     function bindDOMEvents() {
 
         window.onscroll = function() {
-            clearTimeout(scrollDelay);
-            scrollDelay = setTimeout(function() {
+            clearTimeout(listenDelay);
+            listenDelay = setTimeout(function() {
 
                 if ( isInViewport() ) {
                     if (!isHeartbeatStarted) {
@@ -77,13 +77,18 @@ var InViewTracker = (function() {
         };
 
         window.onfocus = function() {
-            calculateViewportBoundaries();
-
             if ( isInViewport() ) {
                 if (!isHeartbeatStarted) {
                     heartbeatStart();
                 }
             }
+        };
+
+        window.onresize = function() {
+            clearTimeout(listenDelay);
+            listenDelay = setTimeout(function() {
+                calculateViewportBoundaries();
+            }, 150);
         };
     }
 
