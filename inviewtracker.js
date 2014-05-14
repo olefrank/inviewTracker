@@ -10,7 +10,7 @@ var InViewTracker = (function() {
 
     "use strict";
 
-    var scrollDelay;
+    var listenDelay;
     var totalTime = 0;
     var heartbeatDelay;
     var heartbeatCounter = 0;
@@ -42,8 +42,8 @@ var InViewTracker = (function() {
         // when user scrolls: start heart beat if element is "in view"
         // delay (150 ms) to avoid unnecessary event
         window.onscroll = function() {
-            clearTimeout(scrollDelay);
-            scrollDelay = setTimeout(function() {
+            clearTimeout(listenDelay);
+            listenDelay = setTimeout(function() {
 
                 if ( isInViewport() ) {
                     if (!isHeartbeatRunning) {
@@ -84,13 +84,20 @@ var InViewTracker = (function() {
 
         // when window gains focus: start heartbeat if element is "in view"
         window.onfocus = function() {
-            calculateViewportBoundaries();
-
             if ( isInViewport() ) {
                 if (!isHeartbeatRunning) {
                     heartbeatStart();
                 }
             }
+        };
+
+        // when window is resized: recalculate viewport size
+        // delay (150 ms): FireFox fires many events on resize
+        window.onresize = function() {
+            clearTimeout(listenDelay);
+            listenDelay = setTimeout(function() {
+                calculateViewportBoundaries();
+            }, 150);
         };
 
     }
