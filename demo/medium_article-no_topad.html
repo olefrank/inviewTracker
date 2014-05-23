@@ -17,13 +17,15 @@
 			Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit tempore eos fugit qui repellat magni numquam quibusdam totam. Esse, vero quas laudantium asperiores architecto consequatur ullam facilis velit laborum unde. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus, autem, dignissimos, harum ipsa tempore totam excepturi maiores blanditiis beatae eum vero illo laborum atque quia doloribus sit sed accusamus cum.</p>
 			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Numquam, minus eveniet consequatur eius animi perferendis dolore laborum amet magnam dolor pariatur ad accusamus officia eos nostrum rerum ratione. Soluta, natus! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Porro, excepturi, vel, reiciendis aliquam quam veniam molestias quibusdam cupiditate perferendis vitae sapiente ad quod deserunt dolor vero iusto repellendus officiis hic! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit tempore eos fugit qui repellat magni numquam quibusdam totam. Esse, vero quas laudantium asperiores architecto consequatur ullam facilis velit laborum unde. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus, autem, dignissimos, harum ipsa tempore totam excepturi maiores blanditiis beatae eum vero illo laborum atque quia doloribus sit sed accusamus cum. Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
 			<p>Numquam, minus eveniet consequatur eius animi perferendis dolore laborum amet magnam dolor pariatur ad accusamus officia eos nostrum rerum ratione. Soluta, natus! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Porro, excepturi, vel, reiciendis aliquam quam veniam molestias quibusdam cupiditate perferendis vitae sapiente ad quod deserunt dolor vero iusto repellendus officiis hic!</p>
+            <p>Numquam, minus eveniet consequatur eius animi perferendis dolore laborum amet magnam dolor pariatur ad accusamus officia eos nostrum rerum ratione. Soluta, natus! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Porro, excepturi, vel, reiciendis aliquam quam veniam molestias quibusdam cupiditate perferendis vitae sapiente ad quod deserunt dolor vero iusto repellendus officiis hic!</p>
+            <p>Numquam, minus eveniet consequatur eius animi perferendis dolore laborum amet magnam dolor pariatur ad accusamus officia eos nostrum rerum ratione. Soluta, natus! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Porro, excepturi, vel, reiciendis aliquam quam veniam molestias quibusdam cupiditate perferendis vitae sapiente ad quod deserunt dolor vero iusto repellendus officiis hic!</p>
 		</div>
 		<div class="ad ad-large">Ad / other content</div>
 
         <div class="menu">
             <ul>
                 <li><a href="long_article-long_topad.html">Long Article / Long top ad</a></li>
-                <li><a href="short_article-no_topad.html">Short Article / No top ad</a></li>
+                <li><a href="medium_article-no_topad.html">Medium Article / No top ad</a></li>
             </ul>
         </div>
 		
@@ -33,16 +35,24 @@
 	<script>
 
         // optional function to send events
-        var eventCallbackFn = function(message) {
-            console.log("external event handler: " + message);
+        var eventCallbackFn = function(eventObj) {
+            console.log("--- external event handler ---");
+            console.log(eventObj);
         };
         // element to track
         var element = document.querySelector(".content-block");
-        var options = {
+        var inviewOptions = {
             element: element,
             eventHandler: eventCallbackFn
         };
-        InViewTracker.init(options);
+
+        InViewTracker.init(inviewOptions);
+
+        // catch "in view" total time before page unloads
+        window.onbeforeunload = function() {
+            // get event object with current total time
+            InViewTracker.getCurrentTimeEvent();
+        }
 
 	</script>
 </body>

@@ -145,12 +145,6 @@ var InViewTracker = (function() {
                 else {
                     heartbeatCounter++;
                     heartbeatDate = new Date();
-//                    var eventObj = {
-//                        heartbeatCount: heartbeatCounter,
-//                        timestamp: totalTime,
-//                        viewportHeight: viewportBottom,
-//                        elementHeight: element.height
-//                    };
                     var eventObj = createEventObject();
                     settings.eventHandler(eventObj);
                 }
@@ -170,7 +164,7 @@ var InViewTracker = (function() {
         var eventObj = {
             heartbeatCount: heartbeatCounter,
             timestamp: totalTime,
-            viewportHeight: viewportBottom,
+            viewportHeight: viewportBottom + viewportTop,
             elementHeight: element.height
         };
         return eventObj;
@@ -199,8 +193,9 @@ var InViewTracker = (function() {
      */
     function isInViewport() {
         element = (settings.element).getBoundingClientRect();
+        var pctInView = settings.pctInView / 100;
 
-        if ( element.height < window.innerHeight )
+        if ( element.height < (window.innerHeight * pctInView) )
             return isFullyVisible(element);
 
         else
