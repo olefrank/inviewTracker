@@ -18,6 +18,7 @@ var InViewTracker = (function() {
     var heartbeatDate;
     var viewportTop;
     var viewportBottom;
+    var element;
 
     /**
      * Object to hold default settings
@@ -30,7 +31,7 @@ var InViewTracker = (function() {
         element: document.querySelector(".article"),
         pctInView: 50,
         eventHandler: broadcastEvent,
-        heartbeatInterval: 2000,
+        heartbeatInterval: 2000, // 2 sec
         heartbeatExpires: 180000 // 3 min
     };
 
@@ -52,7 +53,6 @@ var InViewTracker = (function() {
         // add eventlisteners
         addEventListener(window, "scroll", onScrollHandler);
         addEventListener(window, "load", onLoadHandler);
-        addEventListener(window, "beforeUnload", onBeforeUnloadHandler);
         addEventListener(window, "blur", onBlurHandler);
         addEventListener(window, "focus", onFocusHandler);
         addEventListener(window, "resize", onResizeHandler);
@@ -74,6 +74,7 @@ var InViewTracker = (function() {
                         totalTime += calculateTimeSpent();
                     }
                 }
+
             }, 150);
         }
 
@@ -87,19 +88,12 @@ var InViewTracker = (function() {
             }
         }
 
-        // before page unloads: send event with total time
-        // fjern: virker ikke på iOS + overflødig ved hurtig heartbeat (2 sek)
-        // onUnload, onPageHide
-        function onBeforeUnloadHandler() {
-            settings.eventHandler("totaltime: " + totalTime);
-        }
-
         // when window loses focus: stop heartbeat
         function onBlurHandler() {
             if (isHeartbeatRunning) {
                 heartbeatStop();
-                totalTime += calculateTimeSpent();
             }
+            totalTime += calculateTimeSpent();
         }
 
         // when window gains focus: start heartbeat if element is "in view"
@@ -139,25 +133,26 @@ var InViewTracker = (function() {
         heartbeatDate = new Date();
         isHeartbeatRunning = true;
 
-        // first heartbeat (fake)
-        if (heartbeatCounter === 0) {
-            settings.eventHandler("heartbeatDelay " + heartbeatCounter + "=" + totalTime);
-            heartbeatCounter++;
-        }
-
         // Check if heartbeat is expired
         if (totalTime < settings.heartbeatExpires) {
             heartbeatDelay = setInterval(function() {
                 totalTime += calculateTimeSpent();
 
-                // Stop heatbeat if expired
+                // Stop heartbeat if expired
                 if (totalTime > settings.heartbeatExpires) {
                     clearInterval(heartbeatDelay);
                 }
                 else {
-                    heartbeatDate = new Date();
-                    settings.eventHandler("heartbeatDelay " + heartbeatCounter + "=" + totalTime);
                     heartbeatCounter++;
+                    heartbeatDate = new Date();
+//                    var eventObj = {
+//                        heartbeatCount: heartbeatCounter,
+//                        timestamp: totalTime,
+//                        viewportHeight: viewportBottom,
+//                        elementHeight: element.height
+//                    };
+                    var eventObj = createEventObject();
+                    settings.eventHandler(eventObj);
                 }
             }, settings.heartbeatInterval);
         }
@@ -171,12 +166,22 @@ var InViewTracker = (function() {
         clearInterval(heartbeatDelay);
     }
 
+    function createEventObject() {
+        var eventObj = {
+            heartbeatCount: heartbeatCounter,
+            timestamp: totalTime,
+            viewportHeight: viewportBottom,
+            elementHeight: element.height
+        };
+        return eventObj;
+    }
+
     /**
      * Calcule time spent "in view" since last heartbeat
      * @returns time spent
      */
     function calculateTimeSpent() {
-        var result = 0
+        var result = 0;
 
         if ( heartbeatDate !== undefined) {
             result = new Date().getTime() - heartbeatDate.getTime();
@@ -193,10 +198,11 @@ var InViewTracker = (function() {
      *          true: if 2) and element fills percentage of view port
      */
     function isInViewport() {
-        var element = (settings.element).getBoundingClientRect();
+        element = (settings.element).getBoundingClientRect();
 
         if ( element.height < window.innerHeight )
             return isFullyVisible(element);
+
         else
             return isPartiallyVisible(element);
     }
@@ -223,10 +229,11 @@ var InViewTracker = (function() {
 
     /**
      * Send events
-     * @param message: event message
+     * @param eventObj: event eventObj
      */
-    function broadcastEvent(message) {
-        console.log("simulate event: " + message);
+    function broadcastEvent(eventObj) {
+        console.log("--- simulate event ---");
+        console.log(eventObj);
     };
 
     /**
@@ -249,9 +256,21 @@ var InViewTracker = (function() {
         bindDOMEvents();
     };
 
+    function getCurrentTimeEvent() {
+        if (isHeartbeatRunning) {
+            heartbeatStop();
+        }
+
+        totalTime += calculateTimeSpent();
+        var eventObj = createEventObject();
+
+        settings.eventHandler(eventObj);
+    }
+
     // define plugin interface
     return {
-        init: init
+        init: init,
+        getCurrentTimeEvent: getCurrentTimeEvent
     };
 
 })();

@@ -50,8 +50,9 @@
 	<script>
 
         // optional function to send events
-        var eventCallbackFn = function(message) {
-            console.log("external event handler: " + message);
+        var eventCallbackFn = function(eventObj) {
+            console.log("--- external event handler ---");
+            console.log(eventObj);
         };
         // element to track
         var element = document.querySelector(".content-block");
@@ -59,7 +60,15 @@
             element: element,
             eventHandler: eventCallbackFn
         };
+
         InViewTracker.init(inviewOptions);
+
+        // catch "in view" total time before page unloads
+        window.onbeforeunload = function() {
+            // get event object with current total time
+            InViewTracker.getCurrentTimeEvent();
+        }
+
     </script>
 
 </body>
