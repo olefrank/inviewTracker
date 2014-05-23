@@ -39,9 +39,27 @@ var InViewTracker = (function() {
      */
     function bindDOMEvents() {
 
+        // handle cross browser event listeners
+        var addEventListener = function (element, type, handler) {
+            if (element.addEventListener) {
+                return element.addEventListener(type, handler, false)
+            }
+            else if (element.attachEvent) {
+                return element.attachEvent("on" + type, handler)
+            }
+        };
+
+        // add eventlisteners
+        addEventListener(window, "scroll", onScrollHandler);
+        addEventListener(window, "load", onLoadHandler);
+        addEventListener(window, "beforeUnload", onBeforeUnloadHandler);
+        addEventListener(window, "blur", onBlurHandler);
+        addEventListener(window, "focus", onFocusHandler);
+        addEventListener(window, "resize", onResizeHandler);
+
         // when user scrolls: start heart beat if element is "in view"
         // delay (150 ms) to avoid unnecessary event
-        window.onscroll = function() {
+        function onScrollHandler() {
             clearTimeout(listenDelay);
             listenDelay = setTimeout(function() {
 
@@ -51,54 +69,56 @@ var InViewTracker = (function() {
                     }
                 }
                 else {
-                     if (isHeartbeatRunning) {
+                    if (isHeartbeatRunning) {
                         heartbeatStop();
                         totalTime += calculateTimeSpent();
                     }
                 }
             }, 150);
-        };
+        }
 
         // after page loads: calculate view port size
         // start heartbeat if element is "in view"
-        window.onload = function() {
+        function onLoadHandler() {
             calculateViewportBoundaries();
 
             if ( isInViewport() ) {
                 heartbeatStart();
             }
-        };
+        }
 
         // before page unloads: send event with total time
-        window.onbeforeunload = function() {
+        // fjern: virker ikke på iOS + overflødig ved hurtig heartbeat (2 sek)
+        // onUnload, onPageHide
+        function onBeforeUnloadHandler() {
             settings.eventHandler("totaltime: " + totalTime);
-        };
+        }
 
         // when window loses focus: stop heartbeat
-        window.onblur = function() {
+        function onBlurHandler() {
             if (isHeartbeatRunning) {
                 heartbeatStop();
                 totalTime += calculateTimeSpent();
             }
-        };
+        }
 
         // when window gains focus: start heartbeat if element is "in view"
-        window.onfocus = function() {
+        function onFocusHandler() {
             if ( isInViewport() ) {
                 if (!isHeartbeatRunning) {
                     heartbeatStart();
                 }
             }
-        };
+        }
 
         // when window is resized: recalculate viewport size
         // delay (150 ms): FireFox fires many events on resize
-        window.onresize = function() {
+        function onResizeHandler() {
             clearTimeout(listenDelay);
             listenDelay = setTimeout(function() {
                 calculateViewportBoundaries();
             }, 150);
-        };
+        }
 
     }
 
