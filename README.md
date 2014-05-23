@@ -3,6 +3,15 @@ _InViewTracker_ is a lightweight JavaScript plugin useful for tracking how much 
 
 **[Available at my github](https://github.com/olefrank/inviewtracker/)**
 
+## Compatibility
+_InViewTracker_ should work fine in all modern browsers
+
+I've tested _InViewTracker_ on:
+* Chrome 32+
+* Firefox 28+ 
+* IE 9+
+* Safari for Windows 5.1+
+
 ## Features
 _Coming soon!_
 
