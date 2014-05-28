@@ -1,7 +1,7 @@
 ; // defensive programming: script may be concatenated with others
 
 /*
- * InViewTracker | v0.1
+ * InViewTracker | v0.2
  * Copyright (c) 2014 Ole Frank Jensen
  * Licensed under the MIT license
  */
@@ -19,6 +19,7 @@ var InViewTracker = (function() {
     var viewportTop;
     var viewportBottom;
     var element;
+    var heartbeatTimeout;
 
     /**
      * Object to hold default settings
@@ -31,8 +32,9 @@ var InViewTracker = (function() {
         element: document.querySelector(".article"),
         pctInView: 50,
         eventHandler: broadcastEvent,
-        heartbeatInterval: 2000, // 2 sec
-        heartbeatExpires: 180000 // 3 min
+        heartbeatInterval: 2000, // 2 secs
+        heartbeatExpires: 180000, // 3 mins
+        heartbeatTimeout: 30000 // 30 secs
     };
 
     /**
@@ -56,12 +58,16 @@ var InViewTracker = (function() {
         addEventListener(window, "blur", onBlurHandler);
         addEventListener(window, "focus", onFocusHandler);
         addEventListener(window, "resize", onResizeHandler);
+        addEventListener(window, "mousedown", onActivityHandler);
+        addEventListener(window, "keydown", onActivityHandler);
 
         // when user scrolls: start heart beat if element is "in view"
         // delay (150 ms) to avoid unnecessary event
         function onScrollHandler() {
             clearTimeout(listenDelay);
             listenDelay = setTimeout(function() {
+                // reset heartbeat timeout
+                heartbeatTimeout = settings.heartbeatTimeout;
 
                 if ( isInViewport() ) {
                     if (!isHeartbeatRunning) {
@@ -82,6 +88,8 @@ var InViewTracker = (function() {
         // start heartbeat if element is "in view"
         function onLoadHandler() {
             calculateViewportBoundaries();
+            // reset heartbeat timeout
+            heartbeatTimeout = settings.heartbeatTimeout;
 
             if ( isInViewport() ) {
                 heartbeatStart();
@@ -98,6 +106,9 @@ var InViewTracker = (function() {
 
         // when window gains focus: start heartbeat if element is "in view"
         function onFocusHandler() {
+            // reset heartbeat timeout
+            heartbeatTimeout = settings.heartbeatTimeout;
+
             if ( isInViewport() ) {
                 if (!isHeartbeatRunning) {
                     heartbeatStart();
@@ -106,12 +117,25 @@ var InViewTracker = (function() {
         }
 
         // when window is resized: recalculate viewport size
-        // delay (150 ms): FireFox fires many events on resize
+        // delay (150 ms): some browsers fire many events on resize
         function onResizeHandler() {
             clearTimeout(listenDelay);
             listenDelay = setTimeout(function() {
                 calculateViewportBoundaries();
             }, 150);
+        }
+
+        // when user interacts with page (click, types): reset heartbeat timeout
+        // heartbeat only active when user is attentive
+        function onActivityHandler(e) {
+            // reset heartbeat timeout
+            heartbeatTimeout = settings.heartbeatTimeout;
+
+            if ( isInViewport() ) {
+                if (!isHeartbeatRunning) {
+                    heartbeatStart();
+                }
+            }
         }
 
     }
@@ -139,12 +163,18 @@ var InViewTracker = (function() {
                 totalTime += calculateTimeSpent();
 
                 // Stop heartbeat if expired
-                if (totalTime > settings.heartbeatExpires) {
+                if (totalTime > settings.heartbeatExpires || heartbeatTimeout <= 0) {
+                    isHeartbeatRunning = false;
                     clearInterval(heartbeatDelay);
                 }
                 else {
+                    // reset heartbeat timeout
+                    heartbeatTimeout = heartbeatTimeout - settings.heartbeatInterval;
+
+                    // heartbeat
                     heartbeatCounter++;
                     heartbeatDate = new Date();
+                    // heartbeat event
                     var eventObj = createEventObject();
                     settings.eventHandler(eventObj);
                 }
