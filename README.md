@@ -1,4 +1,6 @@
-# InViewTracker v0.2
+# InViewTracker
+_Current version: 0.2_
+
 _InViewTracker_ is a lightweight JavaScript plugin useful for tracking how much time users spend viewing certain content on your web pages. News papers or blogs use _InViewTracker_ to track how much time each user spends on reading articles on their website. Make sure all articles are within a container element (e.g. #article), include _InViewTracker_ on your pages and start tracking!
 
 **[Available at my github](https://github.com/olefrank/inviewtracker/)**
@@ -27,8 +29,8 @@ _Coming soon!_
 In the '''demo''' folder you can find various HTML pages to demo the plugin. Open the browsers console to view events.
 
 ## Changelog
-0.2 Added **heartbeatTimeout**: to ensure that plugin calculate time spent in view when weh site is unattended (defaults to 30 seconds)
-0.1 Initial release
+* **0.2** Added property "heartbeatTimeout": used to ensure that _InViewTracker_ does not calculate time spent in view when computer is left unattended (defaults to 30 seconds)
+* **0.1** Initial release
 
 ## Contributing
 Bug reports and code contributions are welcome. Please see [CONTRIBUTIONS.md](https://github.com/olefrank/inviewTracker/blob/master/CONTRIBUTIONS.md).
