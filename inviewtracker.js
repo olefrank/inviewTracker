@@ -6,7 +6,8 @@
  * Licensed under the MIT license
  */
 
-var InViewTracker = (function() {
+var InViewTracker;
+InViewTracker = (function () {
 
     "use strict";
 
@@ -20,6 +21,7 @@ var InViewTracker = (function() {
     var viewportBottom;
     var element;
     var heartbeatTimeout;
+    var timeoutTimer;
 
     /**
      * Object to hold default settings
@@ -44,12 +46,16 @@ var InViewTracker = (function() {
 
         // handle cross browser event listeners
         var addEventListener = function (element, type, handler) {
+            var result;
+
             if (element.addEventListener) {
-                return element.addEventListener(type, handler, false)
+                result = element.addEventListener(type, handler, false)
             }
             else if (element.attachEvent) {
-                return element.attachEvent("on" + type, handler)
+                result = element.attachEvent("on" + type, handler)
             }
+
+            return result;
         };
 
         // add eventlisteners
@@ -58,18 +64,20 @@ var InViewTracker = (function() {
         addEventListener(window, "blur", onBlurHandler);
         addEventListener(window, "focus", onFocusHandler);
         addEventListener(window, "resize", onResizeHandler);
+
+        addEventListener(window, "load", onActivityHandler);
+        addEventListener(window, "focus", onActivityHandler);
         addEventListener(window, "mousedown", onActivityHandler);
         addEventListener(window, "keydown", onActivityHandler);
 
         // when user scrolls: start heart beat if element is "in view"
         // delay (150 ms) to avoid unnecessary event
-        function onScrollHandler() {
+        function onScrollHandler(e) {
             clearTimeout(listenDelay);
-            listenDelay = setTimeout(function() {
-                // reset heartbeat timeout
-                heartbeatTimeout = settings.heartbeatTimeout;
+            listenDelay = setTimeout(function () {
+                resetHeartbeatTimeout();
 
-                if ( isInViewport() ) {
+                if (isInViewport()) {
                     if (!isHeartbeatRunning) {
                         heartbeatStart();
                     }
@@ -88,10 +96,9 @@ var InViewTracker = (function() {
         // start heartbeat if element is "in view"
         function onLoadHandler() {
             calculateViewportBoundaries();
-            // reset heartbeat timeout
             heartbeatTimeout = settings.heartbeatTimeout;
 
-            if ( isInViewport() ) {
+            if (isInViewport()) {
                 heartbeatStart();
             }
         }
@@ -106,10 +113,7 @@ var InViewTracker = (function() {
 
         // when window gains focus: start heartbeat if element is "in view"
         function onFocusHandler() {
-            // reset heartbeat timeout
-            heartbeatTimeout = settings.heartbeatTimeout;
-
-            if ( isInViewport() ) {
+            if (isInViewport()) {
                 if (!isHeartbeatRunning) {
                     heartbeatStart();
                 }
@@ -120,21 +124,17 @@ var InViewTracker = (function() {
         // delay (150 ms): some browsers fire many events on resize
         function onResizeHandler() {
             clearTimeout(listenDelay);
-            listenDelay = setTimeout(function() {
+            listenDelay = setTimeout(function () {
                 calculateViewportBoundaries();
             }, 150);
         }
 
-        // when user interacts with page (click, types): reset heartbeat timeout
-        // heartbeat only active when user is attentive
+        // when user interacts with page (click or type): reset heartbeatTimeout
+        // prevent heartbeat from stopping when user is active
         function onActivityHandler(e) {
-            // reset heartbeat timeout
-            heartbeatTimeout = settings.heartbeatTimeout;
-
-            if ( isInViewport() ) {
-                if (!isHeartbeatRunning) {
-                    heartbeatStart();
-                }
+            // arrowUP (38) / arrowDOWN (40) are handled as scroll events
+            if (e.keyCode != 38 || e.keyCode != 40) {
+                resetHeartbeatTimeout();
             }
         }
 
@@ -151,6 +151,32 @@ var InViewTracker = (function() {
     }
 
     /**
+     * Resets heartbeatTimeout if user is active
+     */
+    function resetHeartbeatTimeout() {
+        if (heartbeatTimeout < settings.heartbeatTimeout) {
+            heartbeatTimeout = settings.heartbeatTimeout;
+        }
+    }
+
+    /**
+     * Timer that stops heartbeat if user is inactive
+     */
+    function heartbeatTimeoutHandler() {
+        timeoutTimer = setInterval(function() {
+            heartbeatTimeout = heartbeatTimeout - 1000;
+
+            if (heartbeatTimeout <= 0 || !isHeartbeatRunning) {
+                clearInterval(timeoutTimer);
+
+                if (isHeartbeatRunning) {
+                    heartbeatStop();
+                }
+            }
+        }, 1000);
+    }
+
+    /**
      * Start heartbeat
      */
     function heartbeatStart() {
@@ -159,26 +185,24 @@ var InViewTracker = (function() {
 
         // Check if heartbeat is expired
         if (totalTime < settings.heartbeatExpires) {
-            heartbeatDelay = setInterval(function() {
-                totalTime += calculateTimeSpent();
+            heartbeatTimeoutHandler();
 
-                // Stop heartbeat if expired
-                if (totalTime > settings.heartbeatExpires || heartbeatTimeout <= 0) {
+            // Toggle heartbeat
+            heartbeatDelay = setInterval(function () {
+                totalTime += calculateTimeSpent();
+                // Stop heartbeat if expired or timed out
+                if (totalTime > settings.heartbeatExpires) {
                     isHeartbeatRunning = false;
                     clearInterval(heartbeatDelay);
                 }
                 else {
-                    // reset heartbeat timeout
-                    heartbeatTimeout = heartbeatTimeout - settings.heartbeatInterval;
-
-                    // heartbeat
                     heartbeatCounter++;
                     heartbeatDate = new Date();
-                    // heartbeat event
                     var eventObj = createEventObject();
                     settings.eventHandler(eventObj);
                 }
             }, settings.heartbeatInterval);
+
         }
     }
 
@@ -191,13 +215,12 @@ var InViewTracker = (function() {
     }
 
     function createEventObject() {
-        var eventObj = {
+        return {
             heartbeatCount: heartbeatCounter,
             timestamp: totalTime,
             viewportHeight: viewportBottom + viewportTop,
             elementHeight: element.height
         };
-        return eventObj;
     }
 
     /**
@@ -207,7 +230,7 @@ var InViewTracker = (function() {
     function calculateTimeSpent() {
         var result = 0;
 
-        if ( heartbeatDate !== undefined) {
+        if (heartbeatDate !== undefined) {
             result = new Date().getTime() - heartbeatDate.getTime();
         }
 
@@ -225,7 +248,7 @@ var InViewTracker = (function() {
         element = (settings.element).getBoundingClientRect();
         var pctInView = settings.pctInView / 100;
 
-        if ( element.height < (window.innerHeight * pctInView) )
+        if (element.height < (window.innerHeight * pctInView))
             return isFullyVisible(element);
 
         else
@@ -234,8 +257,7 @@ var InViewTracker = (function() {
 
     /**
      * Determines if element fills percentage of view port
-     * @param element: element
-     * @param html: client / view port
+     * @param element element to track
      * @returns boolean
      */
     function isPartiallyVisible(element) {
@@ -244,8 +266,7 @@ var InViewTracker = (function() {
 
     /**
      * Determines if element is fully visible
-     * @param element: element
-     * @param html: client / view port
+     * @param element element to track
      * @returns boolean
      */
     function isFullyVisible(element) {
@@ -254,34 +275,38 @@ var InViewTracker = (function() {
 
     /**
      * Send events
-     * @param eventObj: event eventObj
+     * @param eventObj event object
      */
     function broadcastEvent(eventObj) {
         console.log("--- simulate event ---");
         console.log(eventObj);
-    };
+    }
 
     /**
      * Merge user settings with default settings
      * User settings overwrite default settings where applied
-     * @param userSettings: settings the user has specified
+     * @param userSettings settings the user has specified
      */
     function mergeSettings(userSettings) {
         for (var key in userSettings) {
             settings[key] = userSettings[key];
         }
-    };
+    }
 
     /**
      * Start tracking attention!
-     * @param userSettings: settings the user has specified
+     * @param userSettings settings the user has specified
      */
     function init(userSettings) {
         mergeSettings(userSettings);
         bindDOMEvents();
-    };
+    }
 
-    function getCurrentTimeEvent() {
+    /**
+     * Get total time spent in view
+     * Can be used for getting total time on page unload
+     */
+    function getTotalTimeEvent() {
         if (isHeartbeatRunning) {
             heartbeatStop();
         }
@@ -292,10 +317,10 @@ var InViewTracker = (function() {
         settings.eventHandler(eventObj);
     }
 
-    // define plugin interface
+    // define public interface
     return {
         init: init,
-        getCurrentTimeEvent: getCurrentTimeEvent
+        getCurrentTimeEvent: getTotalTimeEvent
     };
 
 })();
