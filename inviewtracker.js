@@ -132,9 +132,10 @@ InViewTracker = (function () {
         // when user interacts with page (click or type): reset heartbeatTimeout
         // prevent heartbeat from stopping when user is active
         function onActivityHandler(e) {
-            // arrowUP (38) / arrowDOWN (40) are handled as scroll events
-            if (e.keyCode != 38 || e.keyCode != 40) {
+            // arrow keys are handled in scroll event handler
+            if (e.keyCode != 37 && e.keyCode != 38 && e.keyCode != 39 && e.keyCode != 40) {
                 resetHeartbeatTimeout();
+                console.log("reset");
             }
         }
 
