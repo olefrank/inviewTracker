@@ -40,5 +40,5 @@ If you have any questions you can find me on Twitter at [@olefrankjensen](https:
 
 ## Inspiration
 In making this plugin I was inspired by:
-* [Viljami S](http://viljamis.com/) Wrote a [blog post](http://blog.adtile.me/2014/01/16/a-dive-into-plain-javascript/) about migrating from jQuery to Vanilla JavaScript. I used some of his suggestion how to decide when an element is in view.
-* [Addi Osmani](http://addyosmani.com) Wrote a [great (free) book](http://addyosmani.com/resources/essentialjsdesignpatterns/book/#modulepatternjavascript) about JavaScript programming. I used the "Revealing Module Pattern" for my plugin 'cause it's just - nice!
+* <a href="http://viljamis.com/" target="_blank">Viljami S</a> wrote a <a href="http://blog.adtile.me/2014/01/16/a-dive-into-plain-javascript/" target="_blank">blog post</a> about migrating from jQuery to Vanilla JavaScript. I used some of his suggestion how to decide when an element is in view.
+* <a href="http://addyosmani.com" target="_blank">Addi Osmani</a> wrote a <a href="http://addyosmani.com/resources/essentialjsdesignpatterns/book/#modulepatternjavascript" target="_blanK">great (free) book</a> about JavaScript programming. I used the "Revealing Module Pattern" for my plugin 'cause it's just - nice!
